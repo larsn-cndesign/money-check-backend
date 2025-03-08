@@ -64,6 +64,7 @@ namespace MoneyCheck.Api.Middleware
           break;
 
         default:
+          httpStatusCode = HttpStatusCode.BadRequest;
           result = new LocaleError(LocaleErrorKey.UnknownServerError).ToJson();
           break;
       }

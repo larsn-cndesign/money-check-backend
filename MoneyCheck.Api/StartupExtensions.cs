@@ -1,8 +1,10 @@
-﻿using MoneyCheck.Api.Middleware;
+﻿using Microsoft.AspNetCore.StaticFiles;
+using MoneyCheck.Api.Middleware;
 using MoneyCheck.Application;
 using MoneyCheck.Auth;
 using MoneyCheck.Infrastructure;
 using MoneyCheck.Persistance;
+using System.Text.Json.Serialization;
 
 namespace MoneyCheck.Api
 {
@@ -10,33 +12,33 @@ namespace MoneyCheck.Api
   {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+      builder.Services.AddPersistenceServices(builder.Configuration);
       builder.Services.AddApplicationServices();
       builder.Services.AddInfrastructureServices(builder.Configuration);
-      builder.Services.AddPersistenceServices(builder.Configuration);
       builder.Services.AddAuthServices(builder.Configuration);
-      builder.Services.ConfigureJwtAuthentication();
-
-      //builder.Services.AddScoped<ILoggedInUserService, LoggedInUserService>();
-
-      //builder.Services.AddHttpContextAccessor();
-
-      builder.Services.AddControllers();
-
-      //builder.Services.AddCors(
-      //    options => options.AddPolicy(
-      //        "open",
-      //        policy => policy.WithOrigins([builder.Configuration["ApiUrl"] ?? "https://localhost:7081",
-      //                  builder.Configuration["BlazorUrl"] ?? "https://localhost:7080"])
-      //.AllowAnyMethod()
-      //.SetIsOriginAllowed(pol => true)
-      //.AllowAnyHeader()
-      //.AllowCredentials()));
 
       builder.Services.AddCors(
-          options => options.AddPolicy(
-           "CorsPolicy", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+        options => options.AddPolicy(
+          "CorsPolicy", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+      builder.Services.ConfigureJwtAuthentication(builder.Configuration);
 
-      //builder.Services.AddEndpointsApiExplorer();
+      // ---------------------------------------------------------------------
+      // When using frontend application as part of the deploy process
+      builder.Services.AddControllers().AddJsonOptions(options =>
+      {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+      });
+
+      if (builder.Environment.IsProduction())
+      {
+        builder.Services.AddSpaStaticFiles(configuration =>
+        {
+          configuration.RootPath = "frontend/browser";
+        });
+      }
+      // ---------------------------------------------------------------------
+
+      //builder.Services.AddEndpointsApiExplorer(); // Uncomment when using Swagger
       builder.Services.AddSwaggerGen();
 
       return builder.Build();
@@ -44,15 +46,26 @@ namespace MoneyCheck.Api
 
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
-      //app.MapIdentityApi<ApplicationUser>();
+      if (app.Environment.IsProduction())
+      {
+        app.UseHttpsRedirection();
 
-      //app.MapPost("/Logout", async (ClaimsPrincipal user, SignInManager<ApplicationUser> signInManager) =>
-      //{
-      //  await signInManager.SignOutAsync();
-      //  return TypedResults.Ok();
-      //});
-
-      app.UseCors("open");
+        // ---------------------------------------------------------------------
+        // When using frontend application as part of the deploy process
+        app.UseStaticFiles(new StaticFileOptions
+        {
+          ContentTypeProvider = new FileExtensionContentTypeProvider(new Dictionary<string, string>
+          {
+            { ".js", "application/javascript" }
+          })
+        });
+        app.UseSpaStaticFiles();
+        app.UseSpa(spa =>
+        {
+          spa.Options.SourcePath = "frontend/browser";
+        });
+        // ---------------------------------------------------------------------
+      }
 
       if (app.Environment.IsDevelopment())
       {
@@ -62,7 +75,9 @@ namespace MoneyCheck.Api
 
       app.UseCustomExceptionHandler();
 
-      app.UseHttpsRedirection();
+      app.UseAuthentication();
+      app.UseAuthorization();
+
       app.MapControllers();
 
       return app;

@@ -1,14 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MoneyCheck.Application.Exceptions;
 using MoneyCheck.Application.Features.ActualItems;
 using MoneyCheck.Application.Features.ActualItems.Commands.CreateActualItem;
 using MoneyCheck.Application.Features.ActualItems.Commands.DeleteActualItem;
 using MoneyCheck.Application.Features.ActualItems.Commands.UpdateActualItem;
 using MoneyCheck.Application.Features.ActualItems.Queries.GetActualItem;
 using MoneyCheck.Application.Models.Enteties;
-using MoneyCheck.Application.Models.Localization;
 
 namespace MoneyCheck.Api.Controllers
 {
@@ -22,7 +20,6 @@ namespace MoneyCheck.Api.Controllers
     [HttpPost("get")]
     public async Task<ActionResult<ManageActualItem>> GetActualItems([FromBody] ItemFilter filter)
     {
-      throw new NotFoundException(LocaleErrorParam.BudgetVersion, "BudgetVersion", 11);
       var actualItem = await _mediator.Send(new GetActualItemQuery() { Filter = filter });
       return Ok(actualItem);
     }

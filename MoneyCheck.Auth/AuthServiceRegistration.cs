@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MoneyCheck.Application.Contracts.Authentication;
-using MoneyCheck.Application.Contracts.Infrastructure;
 using MoneyCheck.Application.Models.Auth;
-using MoneyCheck.Application.Models.Mail;
 using MoneyCheck.Auth.Auth;
 using System.Text;
 
@@ -23,14 +20,12 @@ namespace MoneyCheck.Auth
       return services;
     }
 
-    public static void ConfigureJwtAuthentication(this IServiceCollection services)
+    public static void ConfigureJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-      var serviceProvider = services.BuildServiceProvider();
-      var jwtTokenOptions = serviceProvider.GetRequiredService<IOptions<JwtTokenSettings>>();
-      var jwtToken = jwtTokenOptions.Value;
+      var jwtTokenSettings = configuration.GetSection("JwtTokenSettings").Get<JwtTokenSettings>();
 
-      if (jwtToken?.Issuer == null || jwtToken?.Audience == null || jwtToken?.SecretKey == null)
-        throw new Exception("Unknown error");
+      if (jwtTokenSettings == null || jwtTokenSettings.Issuer == null || jwtTokenSettings.Audience == null || jwtTokenSettings.SecretKey == null)
+        throw new Exception("JWT settings are missing or incomplete.");
 
       services
         .AddAuthentication(opt =>
@@ -46,9 +41,9 @@ namespace MoneyCheck.Auth
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtToken.Issuer,
-            ValidAudience = jwtToken.Audience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtToken.SecretKey))
+            ValidIssuer = jwtTokenSettings.Issuer,
+            ValidAudience = jwtTokenSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtTokenSettings.SecretKey))
           };
         });
     }

@@ -21,9 +21,10 @@ namespace MoneyCheck.Api.Controllers
     {
       var budget = await _mediator.Send(new GetBudgetListQuery());
       return Ok(budget);
-    } 
+    }
 
     [HttpGet("state")]
+    [AllowAnonymous]
     public async Task<ActionResult<BudgetState>> GetBudgetState()
     {
       var budget = await _mediator.Send(new GetBudgetStateQuery());

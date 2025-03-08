@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+#Custom ignored files
+**/Migrations/
+**/frontend/
+**/mail/
+**/Properties/
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/web.config
+.gitattributes
