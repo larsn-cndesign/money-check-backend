@@ -45,15 +45,15 @@ Tests are planned under TODOs
 - Microsoft.AspNetCore.SpaServices.Extensions - SPA application helper
 - Microsoft.AspNetCore.Authentication.JwtBearer - Authentication middleware
 - Serilog - Logging
-    .AspNetCore
-    .ExtensionsLogging
-    .Settings.Configuration
-    .Sinks.File
+  - .AspNetCore
+  - .ExtensionsLogging
+  - .Settings.Configuration
+  - .Sinks.File
 - Swashbuckle - Swagger tools
-    .AspNetCore
-    .AspNetCore.Swagger
+  - .AspNetCore
+  - .AspNetCore.Swagger
 - FluentValidation - Validation
-    .DependencyInjectionExtensions
+  - .DependencyInjectionExtensions
 - Pomelo.EntityFrameworkCore.MySql - MySQL database provider
 
 ## Versioning
